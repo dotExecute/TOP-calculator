@@ -10,7 +10,7 @@ let operator;
 
 let numClicked;
 let operatorClicked;
-let isOperatorClicked;
+let isResultDisplayed;
 
 // obj to store operations
 const calcObj = {
@@ -20,7 +20,7 @@ const calcObj = {
   "-": function (a, b) {
     return a - b;
   },
-  "x": function (a, b) {
+  x: function (a, b) {
     return a * b;
   },
   "÷": function (a, b) {
@@ -37,9 +37,16 @@ function operate(num1, num2, operator) {
 function getNumClicked() {
   btnContainer.addEventListener("click", (e) => {
     if (e.target.matches(".numbers")) {
-      numClicked = e.target.textContent;
-      inputField.value += numClicked;
-      console.log(numClicked);
+      if (isResultDisplayed) {
+        numClicked = e.target.textContent;
+        inputField.value = numClicked;
+        isResultDisplayed = false;
+        console.log(numClicked);
+      } else {
+        numClicked = e.target.textContent;
+        inputField.value += numClicked;
+        console.log(numClicked);
+      }
     }
   });
 }
@@ -49,22 +56,32 @@ getNumClicked();
 function getOperationClicked() {
   btnContainer.addEventListener("click", (e) => {
     if (e.target.matches(".operator")) {
-      operatorClicked = e.target.textContent;
-      isOperatorClicked = true;
-      num1 = Number(inputField.value);
-      inputField.value = "";
-      console.log(num1);
+      if (num1 && operatorClicked && inputField.value) {
+        num2 = Number(inputField.value);
+        let answer = operate(num1, num2, operatorClicked);
+        num1 = answer;
+        operatorClicked = e.target.textContent;
+        isResultDisplayed = true;
+        return (inputField.value = answer);
+      } else {
+        operatorClicked = e.target.textContent;
+        num1 = Number(inputField.value);
+        inputField.value = "";
+        console.log(num1);
+      }
     }
   });
 }
 getOperationClicked();
 
+// calculate and display result
 function getResult() {
   result.addEventListener("click", () => {
     num2 = Number(inputField.value);
     let answer = operate(num1, num2, operatorClicked);
     num1 = answer;
-    return inputField.value = answer;
+    isResultDisplayed = true;
+    return (inputField.value = answer);
   });
 }
 getResult();
