@@ -30,6 +30,10 @@ const calcObj = {
 
 // takes in user input and does operations on it
 function operate(num1, num2, operator) {
+  // handling division by 0
+  if (operator === "÷" && num2 === 0) {
+    return "🍞YOU🍞, What are you?!";
+  }
   return calcObj[operator](num1, num2);
 }
 
@@ -59,13 +63,28 @@ function getOperationClicked() {
       if (num1 && operatorClicked && inputField.value) {
         num2 = Number(inputField.value);
         let answer = operate(num1, num2, operatorClicked);
-        num1 = answer;
-        operatorClicked = e.target.textContent;
-        isResultDisplayed = true;
-        return (inputField.value = answer);
+        // check if answer is a number
+        if (!isNaN(answer)) {
+          inputField.value = answer;
+          num1 = answer;
+          operatorClicked = e.target.textContent;
+          isResultDisplayed = true;
+        } else {
+          // if error do this
+          num1 = null;
+          num2 = null;
+          operatorClicked = null;
+          inputField.value = answer;
+          isResultDisplayed = true;
+        }
+        console.log("num1: " + num1);
+        console.log("num2: " + num2);
+        console.log("operator: " + operatorClicked);
       } else {
+        if (inputField.value && !isNaN(Number(inputField.value))) {
+          num1 = Number(inputField.value);
+        }
         operatorClicked = e.target.textContent;
-        num1 = Number(inputField.value);
         inputField.value = "";
         console.log(num1);
       }
@@ -77,11 +96,31 @@ getOperationClicked();
 // calculate and display result
 function getResult() {
   result.addEventListener("click", () => {
-    num2 = Number(inputField.value);
-    let answer = operate(num1, num2, operatorClicked);
-    num1 = answer;
-    isResultDisplayed = true;
-    return (inputField.value = answer);
+    if (num1 && operatorClicked && inputField.value) {
+      num2 = Number(inputField.value);
+      let answer = operate(num1, num2, operatorClicked);
+
+      //check if answer is a number
+      if (!isNaN(answer)) {
+        num1 = answer;
+        isResultDisplayed = true;
+        inputField.value = answer;
+      } else {
+        // if error do this
+        num1 = null;
+        num2 = null;
+        operatorClicked = null;
+        inputField.value = answer;
+        isResultDisplayed = true;
+      }
+      console.log("num1: " + num1);
+      console.log("num2: " + num2);
+      console.log("operator: " + operatorClicked);
+    } else {
+      if (inputField.value && !isNaN(Number(inputField.value))) {
+        num1 = Number(inputField.value);
+      }
+    }
   });
 }
 getResult();
