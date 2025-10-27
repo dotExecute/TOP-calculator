@@ -2,6 +2,9 @@
 const btnContainer = document.querySelector(".lower");
 const inputField = document.querySelector(".input-field");
 const result = document.querySelector(".result");
+const clearBtn = document.querySelector(".clear-btn");
+const allBtn = document.querySelectorAll(".numbers");
+const allOperators = document.querySelectorAll(".operator");
 
 // variables to store userinputs
 let num1;
@@ -12,6 +15,8 @@ let numClicked;
 let operatorClicked;
 let isResultDisplayed;
 
+let lastValue = [];
+
 // obj to store operations
 const calcObj = {
   "+": function (a, b) {
@@ -20,7 +25,7 @@ const calcObj = {
   "-": function (a, b) {
     return a - b;
   },
-  x: function (a, b) {
+  "x": function (a, b) {
     return a * b;
   },
   "÷": function (a, b) {
@@ -37,10 +42,41 @@ function operate(num1, num2, operator) {
   return calcObj[operator](num1, num2);
 }
 
+// store last button pressed
+function storeLastValue(value) {
+  lastValue.push(value);
+  console.log("last value:" + lastValue);
+}
+
+// clear all input and reset
+function getClearBtn() {
+  clearBtn.addEventListener("click", () => {
+    if (inputField.value) {
+      inputField.value = "";
+      num1 = null;
+      num2 = null;
+      operatorClicked = null;
+      isResultDisplayed = false;
+    } else {
+      return;
+    }
+    console.log(num1, num2, operatorClicked);
+  });
+}
+getClearBtn();
+
 // get the number pressed, store and display
 function getNumClicked() {
+  // UI nums
   btnContainer.addEventListener("click", (e) => {
     if (e.target.matches(".numbers")) {
+      storeLastValue(numClicked);
+
+      // handle decimal
+      if (e.target.textContent === "." && inputField.value.includes(".")) {
+        return;
+      }
+
       if (isResultDisplayed) {
         numClicked = e.target.textContent;
         inputField.value = numClicked;
@@ -62,12 +98,14 @@ function getOperationClicked() {
     if (e.target.matches(".operator")) {
       if (num1 && operatorClicked && inputField.value) {
         num2 = Number(inputField.value);
-        let answer = operate(num1, num2, operatorClicked);
+        let answer = Number(operate(num1, num2, operatorClicked).toFixed(2));
         // check if answer is a number
         if (!isNaN(answer)) {
-          inputField.value = answer;
           num1 = answer;
+          num1 = null;
+          num2 = null;
           operatorClicked = e.target.textContent;
+          inputField.value = answer;
           isResultDisplayed = true;
         } else {
           // if error do this
@@ -83,10 +121,10 @@ function getOperationClicked() {
       } else {
         if (inputField.value && !isNaN(Number(inputField.value))) {
           num1 = Number(inputField.value);
+          operatorClicked = e.target.textContent;
+          inputField.value = ""; // emptying to stop making the previous if condition true
+          console.log(num1);
         }
-        operatorClicked = e.target.textContent;
-        inputField.value = "";
-        console.log(num1);
       }
     }
   });
@@ -98,18 +136,19 @@ function getResult() {
   result.addEventListener("click", () => {
     if (num1 && operatorClicked && inputField.value) {
       num2 = Number(inputField.value);
-      let answer = operate(num1, num2, operatorClicked);
+      let answer = Number(operate(num1, num2, operatorClicked).toFixed(2));
 
       //check if answer is a number
       if (!isNaN(answer)) {
         num1 = answer;
-        isResultDisplayed = true;
+        num1 = null;
+        num2 = null;
         inputField.value = answer;
+        isResultDisplayed = true;
       } else {
         // if error do this
         num1 = null;
         num2 = null;
-        operatorClicked = null;
         inputField.value = answer;
         isResultDisplayed = true;
       }
@@ -119,8 +158,84 @@ function getResult() {
     } else {
       if (inputField.value && !isNaN(Number(inputField.value))) {
         num1 = Number(inputField.value);
+        num2 = null;
+        operatorClicked = null;
       }
     }
   });
 }
 getResult();
+
+// get keyboard keys
+function getKeyboard() {
+  document.addEventListener("keydown", (event) => {
+    let key = event.key;
+    console.log(key);
+
+    if (key >= "0" && key <= "9") {
+      allBtn.forEach((btn) => {
+        // check if key press matches a ui button
+        if (btn.textContent === key) {
+          btn.click();
+        }
+      });
+    }
+
+    // add opertator key support
+    else if (key === "+" || key === "-" || key === "*" || key === "/") {
+      // assign operators to corresponding keys
+      const operatorsAssign = {
+        "+": "+",
+        "-": "-",
+        "*": "x",
+        "/": "÷",
+      };
+
+      key = operatorsAssign[key];
+      console.log(key);
+      allOperators.forEach((operator) => {
+        if (operator.textContent === key) {
+          operator.click();
+        }
+      });
+    }
+
+    // add Enter key support
+    else if (key === "Enter") {
+      event.preventDefault();
+      if (inputField.value) {
+        result.click();
+      } else {
+        return;
+      }
+    }
+
+    // add Esc key support
+    else if (key === "Escape") {
+      event.preventDefault();
+      clearBtn.click();
+    }
+
+    // add Backspace support
+    else if (key === "Backspace") {
+      event.preventDefault();
+
+      if (lastValue.length > 0) {
+        // remove number from array
+        const removeLast = lastValue.pop();
+
+        // remove number from display
+        inputField.value = inputField.value.slice(0, -1);
+
+        console.log("Deleted:", removeLast);
+        console.log("Remaining:", lastValue);
+      }
+    }
+
+    // block other keys
+    else {
+      event.preventDefault();
+    }
+  });
+}
+getKeyboard();
